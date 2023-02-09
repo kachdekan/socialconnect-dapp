@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons'
 import Emoji from 'react-native-emoji'
 
 import { Footer } from '../components'
+import { lookupAddresses } from '../attestation'
 
 
 export default function HomeScreen() {
@@ -41,6 +42,12 @@ export default function HomeScreen() {
       date: "Mon, 6 Feb 2023",
     }
   ]
+
+  const handleTx = async () => {
+    console.log(`\nSend $${amount} to ${number}`)
+    const account = await lookupAddresses(number)
+    console.log("Accounts:", account)
+  }
 
 
 
@@ -87,7 +94,7 @@ export default function HomeScreen() {
             </FormControl.ErrorMessage>
           </Stack>
           </FormControl>
-        <Button mx="4" variant={isConnected ? null : "subtle"} onPress={()=> console.log(`\nto: ${number}\namt: ${amount}`)}>
+        <Button mx="4" variant={isConnected ? null : "subtle"} onPress={()=> handleTx()}>
           { isConnected ? "Send" : "Connect wallet"} 
         </Button>
         </VStack>

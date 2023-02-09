@@ -10,18 +10,18 @@ const ec = new EC('secp256k1')
  * Wraps the React Native BLS client
  */
 export class ReactNativeBlsBlindingClient {
-  odisPubKey
-  base64Random
 
   constructor(odisPubKey, base64Random) {
     this.odisPubKey = odisPubKey
     this.base64Random = base64Random
   }
 
-  async blindMessage(base64PhoneNumber) {
-    return (
-      await BlindThresholdBls.blindMessageWithRandom(base64PhoneNumber, this.base64Random)
-    ).trim()
+  blindMessageWithRandom = async (base64PhoneNumber) => {
+    return (await BlindThresholdBls.blindMessageWithRandom(base64PhoneNumber, this.base64Random)).trim()
+  } 
+
+  blindMessage = async (base64PhoneNumber) => {
+    return (await BlindThresholdBls.blindMessage(base64PhoneNumber)).trim()
   }
 
   unblindAndVerifyMessage(base64BlindSig){
@@ -39,5 +39,6 @@ export class ReactNativeBlsBlindingClient {
       byteBuffer.push(buffer[i])
     }
     return Buffer.from(byteBuffer).toString('base64')
+    
   }
 }
