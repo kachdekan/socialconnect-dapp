@@ -1,16 +1,22 @@
 import React from 'react'
-import { Box, HStack, Text, VStack, Button, Icon, Spacer, Input, Divider, FormControl, Stack, Avatar, FlatList} from 'native-base'
+import { Box, HStack, Text, VStack, Button, Icon, Spacer, Input, Divider, FormControl, Stack, Avatar, FlatList, useDisclose} from 'native-base'
 import { Ionicons } from '@expo/vector-icons'
 import Emoji from 'react-native-emoji'
 
-import { Footer } from '../components'
+import { VerifySendModal, Footer, SpinnerModal, SuccessModal } from '../components'
 import { lookupAddresses } from '../attestation'
+import { sendToAccount } from '../sendTx'
 
 
 export default function HomeScreen() {
-  const [isConnected, setIsConnected ] = React.useState(true)
-  const [number, setNumber] = React.useState("")
+  const [isConnected, setIsConnected ] = React.useState(false)
+  const [number, setNumber] = React.useState("+18009099991")
   const [amount, setAmount] = React.useState("0.01")
+  const [account, setAccount] = React.useState("")
+  const [txHash, setTxHash ] = React.useState("") 
+  const [isLoading, setIsLoading] = React.useState(false)
+  const { isOpen, onOpen, onClose } = useDisclose();
+  const { isOpen: isOpen1, onOpen: onOpen1, onClose: onClose1 } = useDisclose();
 
   const transactions = [
     {
@@ -44,9 +50,33 @@ export default function HomeScreen() {
   ]
 
   const handleTx = async () => {
+    setIsLoading(true)
     console.log(`\nSend $${amount} to ${number}`)
-    const account = await lookupAddresses(number)
-    console.log("Accounts:", account)
+    const accounts = await lookupAddresses(number)
+    console.log("Accounts:", accounts)
+    if(accounts.length > 0){
+      setAccount(accounts[0])
+      setIsLoading(false)
+      onOpen()
+    }else{
+      setIsLoading(false)
+      console.log("Can't Send")
+    }
+  }
+
+  const handleSend = async () => {
+    onClose()
+    setIsLoading(true)
+    const response = await sendToAccount(account, amount)
+    setIsLoading(false) 
+    console.log(response)
+    if(response.status == 1){
+      setTxHash(response.transactionHash)
+      console.log("Sent Successfully")
+      onOpen1()
+    } else {
+      console.log("Something went wrong")
+    }
   }
 
 
@@ -100,6 +130,26 @@ export default function HomeScreen() {
         </VStack>
         
       </Box>
+      <SpinnerModal 
+        showSpinner={isLoading}
+        closeSpinner={isOpen || isOpen1}
+      />
+      <VerifySendModal 
+        showModal={isOpen}
+        identifier={number}
+        amount={amount}
+        account={account}
+        handleSend={handleSend}
+        closeModal={onClose}
+      />
+      <SuccessModal 
+        showModal={isOpen1}
+        identifier={number}
+        amount={amount}
+        txhash={txHash}
+        closeModal={onClose1}
+      />
+
       <VStack safeAreaX={4}>
           <HStack justifyContent="space-between" mx={2} mb={2}>
             <Text>Some Transactions</Text>
